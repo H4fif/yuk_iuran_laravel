@@ -1,5 +1,5 @@
 # yuk_iuran_laravel
-CMS with Laravel
+CMS of boarding house administration management with Laravel
 
 Set Up
 <ul>
