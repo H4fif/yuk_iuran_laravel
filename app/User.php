@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Sentinel;
 
 class User extends Authenticatable
 {
@@ -15,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'permissions', 'last_login', 'first_name', 'last_name', 'created_at', 'updated_at', 'photo', 'phone_number', 'date_of_birth', 'address', 'area_id',
+        'first_name', 'last_name', 'email', 'password', 'permissions', 'last_login', 'first_name', 'last_name', 'created_at', 'updated_at', 'photo', 'phone_number', 'birth_date', 'address', 'area_id',
     ];
 
     /**
@@ -36,17 +37,36 @@ class User extends Authenticatable
     }
 
     public function getAll() {
-        return User::select('id', 'name', 'email', 'password', 'permissions', 'last_login', 'first_name', 'last_name', 'created_at', 'updated_at', 'photo', 'phone_number', 'date_of_birth', 'address', 'area_id')->get();
+        return User::select('id', 'first_name', 'last_name', 'email', 'password', 'permissions', 'last_login', 'first_name', 'last_name', 'created_at', 'updated_at', 'photo', 'phone_number', 'birth_date', 'address', 'area_id')->get();
     }
 
     public function store($data) {
-        $data_user = [
-            'email' => $data->email,
-            'password' => $data->password,
-            'first_name' => $data->first_name,
-            'last_name' => $data->last_name,
-            'photo' => $data->photo,
-            'phone_number' => $data->phone_number,
-        ];
+        $newUser = [
+          'email' => $data->email,
+          'password' => $data->password,
+          'first_name' => $data->first_name,
+          'last_name' => $data->last_name,
+          'birth_date' => $data->birth_date,
+          'phone_number' => $data->phone_number,
+          'address' => $data->address,
+          'area_id' => $data->area_id,
+          'photo' => $data->photo
+      ];
+
+      $userRegistration = Sentinel::registerAndActivate($newUser);
+
+      if ($userRegistration) {
+          $user = User::where('id', $userRegistration->id)
+                          ->update([
+                              'birth_date' => $data->birth_date,
+                              'phone_number' => $data->phone_number,
+                              'address' => $data->address,
+                              'area_id' => $data->area_id,
+                              'photo' => $data->photo
+                          ]);
+          return $user ;
+      } else {
+          return false;
+      }
     }
 }
