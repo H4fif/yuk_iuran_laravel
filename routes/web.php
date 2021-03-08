@@ -14,3 +14,8 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::prefix('user')->group(function () {
+    Route::get('/', ['as' => 'user.index', 'uses' => 'UserController@index']);
+    Route::post('/create', ['as' => 'user.store', 'uses' => 'UserController@store']);
+});
