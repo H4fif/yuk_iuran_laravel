@@ -14,11 +14,11 @@ class AddColumnPhotoPhoneNumberDateOfBirthAreaIdAddressToTableUsers extends Migr
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('photo');
-            $table->string('phone_number');
-            $table->date('date_of_birth');
-            $table->string('address');
-            $table->integer('area_id');
+            $table->string('photo')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->date('birth_date')->nullable();
+            $table->string('address')->nullable();
+            $table->string('area_id')->nullable();
         });
     }
 
@@ -30,7 +30,7 @@ class AddColumnPhotoPhoneNumberDateOfBirthAreaIdAddressToTableUsers extends Migr
     public function down()
     {
         Schema::table('uses', function (Blueprint $table) {
-            $table->dropColumn(['photo', 'phone_number', 'date_of_birth', 'address', 'area_id']);
+            $table->dropColumn(['photo', 'phone_number', 'birth_date', 'address', 'area_id']);
         });
     }
 }
