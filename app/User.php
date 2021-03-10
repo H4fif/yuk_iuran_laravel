@@ -16,7 +16,21 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'permissions', 'last_login', 'first_name', 'last_name', 'created_at', 'updated_at', 'photo', 'phone_number', 'birth_date', 'address', 'area_id',
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'permissions',
+        'last_login',
+        'first_name',
+        'last_name',
+        'created_at',
+        'updated_at',
+        'photo',
+        'phone_number', 
+        'birth_date',
+        'address',
+        'area_id'
     ];
 
     /**
@@ -32,12 +46,28 @@ class User extends Authenticatable
         return $this->hasOne('App\RoleUser');
     }
 
+    public function area() {
+        return $this->hasOne('App\Village');
+    }
+
     public function findUserById($id) {
         return User::where('user_id', $id)->first();
     }
 
     public function getAll() {
-        return User::select('id', 'first_name', 'last_name', 'email', 'password', 'permissions', 'last_login', 'first_name', 'last_name', 'created_at', 'updated_at', 'photo', 'phone_number', 'birth_date', 'address', 'area_id')->get();
+        return User::select(
+            'users.id as user_id', 'first_name', 'last_name', 'email',
+            'password', 'permissions', 'last_login', 'first_name',
+            'last_name',  'photo', 'phone_number', 'birth_date', 'address',
+            'villages.name as village_name',
+            'districts.name as district_name',
+            'regencies.name as region_name',
+            'provinces.name as province_name'
+        )->join('villages', 'users.area_id', '=', 'villages.id')
+        ->join('districts', 'villages.district_id', '=', 'districts.id')
+        ->join('regencies', 'districts.regency_id', '=', 'regencies.id')
+        ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
+        ->get();
     }
 
     public function store($data) {
