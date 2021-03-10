@@ -10,10 +10,17 @@ class Village extends Model
     protected $fillable = [];
 
     /**
-     * Define relationship with district table
+     * Define relationship with districts table
      */
     public function district() {
         return $this->hasMany('App\District');
+    }
+
+    /**
+     * Define relationship with users table
+     */
+    public function user() {
+        return $this->belongsToMany('App\User');
     }
 
     /**
