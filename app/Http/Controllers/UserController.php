@@ -21,28 +21,46 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $modelUser = new User();
-        $users = $modelUser->getAll();
+    public function index() {
 
-        $modelProvince = new Province();
-        $provincies = $modelProvince->getAll();
+    }
 
-        $modelRegency = new Regency();
-        $regencies = $modelRegency->getAll();
+    /**
+     * Return all data from users table.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getAll() {
+        try {
+            $modelUser = new User();
+            $users = $modelUser->getAll();
+            $data = $users;
 
-        $modelDistrict = new District();
-        $districts = $modelDistrict->getAll();
+            $meta = [
+                'code' => 200,
+                'error' => false,
+                'message' => 'success'
+            ];
 
-        $modelVillage = new Village();
-        $villages = $modelVillage->getAll(10);
+            return response()->json([
+                'meta' => $meta,
+                'data' => $data
+            ], $meta['code']);
+        } catch (Exception $e) {
+            Log::error($e);
+            $data = $e;
 
-        $village = $modelVillage->getById('3273170004');
+            $meta = [
+                'code' => 500,
+                'error' => true,
+                'message' => 'failed'
+            ];
 
-        // dd( $users->toArray() );
-
-        dd( $village->toArray() );
+            return response()->json([
+                'meta' => $meta,
+                'data' => $data
+            ], $meta['code']);
+        }
     }
 
     /**
@@ -82,16 +100,45 @@ class UserController extends Controller
             $errors = $validator->errors();
 
             if ($validator->fails()) {
-                dd( $errors );
+                $meta = [
+                    'code' => 400,
+                    'error' => true,
+                    'message' => 'failed',
+                ];
+
+                $data = $errors;
             } else {
                 $result =  $modelUser->store($request);
                 DB::commit();
+                $data = [];
+
+                $meta = [
+                    'code' => 200,
+                    'error' => false,
+                    'message' => 'success'
+                ];
             }
+
+            return response()->json([
+                'meta' => $meta,
+                'data' => $data
+            ], $meta['code']);
         } catch (Exception $e) {
             DB::rollback();
             Log::error($e);
 
-            dd( $e );
+            $data = [];
+
+            $meta = [
+                'code' => 500,
+                'error' => true,
+                'message' => 'Sorry to interrupt your work, our server seems to have problem, we will be right back soon (^_^)'
+            ];
+
+            return response()->json([
+                'meta' => $meta,
+                'data' => $data
+            ], $meta['code']);
         }
     }
 
@@ -138,5 +185,9 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function signUpPage() {
+        return view('auth.signup');
     }
 }
