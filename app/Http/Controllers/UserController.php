@@ -14,8 +14,7 @@ use Log;
 use Sentinel;
 use Validator;
 
-class UserController extends Controller
-{
+class UserController extends Controller {
     /**
      * Display a listing of the resource.
      *
@@ -30,7 +29,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getAll() {
+    public function apiGetAll() {
         try {
             $modelUser = new User();
             $users = $modelUser->getAll();
@@ -64,58 +63,29 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Return all data from users table.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
+    public function apiGetUserById(Request $request) {
         try {
-            DB::beginTransaction();
             $modelUser = new User();
             
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|unique:users,email',
-                'password' => 'required|max:255|confirmed',
-                'first_name' => 'required|max:255',
-                'last_name' => 'required|max:255',
-                'birth_date' => 'required|date_format:Y-m-d',
-                'phone_number' => 'required|numeric',
-                'address' => 'required',
-                'area_id' => 'required|numeric',
-                'photo' => 'nullable'
-            ]);
-
-            $errors = $validator->errors();
-
-            if ($validator->fails()) {
-                $meta = [
-                    'code' => 400,
-                    'error' => true,
-                    'message' => 'failed',
-                ];
-
-                $data = $errors;
-            } else {
-                $result =  $modelUser->store($request);
-                DB::commit();
-                $data = [];
+            if (!empty($request->user_token)) {
+                $id = $request->user_token;
+                $users = $modelUser->getUserById($id);
+                $data = $users;
 
                 $meta = [
                     'code' => 200,
                     'error' => false,
                     'message' => 'success'
+                ];
+            } else {
+                $meta = [
+                    'code' => 400,
+                    'error' => true,
+                    'message' => 'failed'
                 ];
             }
 
@@ -124,15 +94,13 @@ class UserController extends Controller
                 'data' => $data
             ], $meta['code']);
         } catch (Exception $e) {
-            DB::rollback();
             Log::error($e);
-
-            $data = [];
+            $data = $e;
 
             $meta = [
                 'code' => 500,
                 'error' => true,
-                'message' => 'Sorry to interrupt your work, our server seems to have problem, we will be right back soon (^_^)'
+                'message' => 'failed'
             ];
 
             return response()->json([
@@ -143,13 +111,30 @@ class UserController extends Controller
     }
 
     /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create() {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request) {
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
-    {
+    public function show(User $user) {
         //
     }
 
@@ -159,8 +144,7 @@ class UserController extends Controller
      * @param  \App\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function edit(User $user)
-    {
+    public function edit(User $user) {
         //
     }
 
@@ -171,8 +155,7 @@ class UserController extends Controller
      * @param  \App\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $user)
-    {
+    public function update(Request $request, User $user) {
         //
     }
 
@@ -182,12 +165,7 @@ class UserController extends Controller
      * @param  \App\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user)
-    {
+    public function destroy(User $user) {
         //
-    }
-
-    public function signUpPage() {
-        return view('auth.signup');
     }
 }
