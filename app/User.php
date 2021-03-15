@@ -67,36 +67,53 @@ class User extends Authenticatable
         ->join('districts', 'villages.district_id', '=', 'districts.id')
         ->join('regencies', 'districts.regency_id', '=', 'regencies.id')
         ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
-        ->get();
+        ->get()->limit(100);
+    }
+
+    public function getUserById($id) {
+        return User::select(
+            'users.id as user_id', 'first_name', 'last_name', 'email',
+            'password', 'permissions', 'last_login', 'first_name',
+            'last_name',  'photo', 'phone_number', 'birth_date', 'address',
+            'villages.name as village_name',
+            'districts.name as district_name',
+            'regencies.name as region_name',
+            'provinces.name as province_name'
+        )->join('villages', 'users.area_id', '=', 'villages.id')
+        ->join('districts', 'villages.district_id', '=', 'districts.id')
+        ->join('regencies', 'districts.regency_id', '=', 'regencies.id')
+        ->join('provinces', 'regencies.province_id', '=', 'provinces.id')
+        ->where('user_id', '=', $id)
+        ->first();
     }
 
     public function store($data) {
-        $newUser = [
-          'email' => $data->email,
-          'password' => $data->password,
-          'first_name' => $data->first_name,
-          'last_name' => $data->last_name,
-          'birth_date' => $data->birth_date,
-          'phone_number' => $data->phone_number,
-          'address' => $data->address,
-          'area_id' => $data->area_id,
-          'photo' => $data->photo
-      ];
+          $newUser = [
+            'email' => $data->email,
+            'password' => $data->password,
+            'first_name' => $data->first_name,
+            'last_name' => $data->last_name,
+            'birth_date' => $data->birth_date,
+            'phone_number' => $data->phone_number,
+            'address' => $data->address,
+            'area_id' => $data->area_id,
+            'photo' => $data->photo
+        ];
 
-      $userRegistration = Sentinel::registerAndActivate($newUser);
+        $userRegistration = Sentinel::registerAndActivate($newUser);
 
-      if ($userRegistration) {
-          $user = User::where('id', $userRegistration->id)
-                          ->update([
-                              'birth_date' => $data->birth_date,
-                              'phone_number' => $data->phone_number,
-                              'address' => $data->address,
-                              'area_id' => $data->area_id,
-                              'photo' => $data->photo
-                          ]);
-          return $user ;
-      } else {
-          return false;
-      }
+        if ($userRegistration) {
+            $user = User::where('id', $userRegistration->id)
+                            ->update([
+                                'birth_date' => $data->birth_date,
+                                'phone_number' => $data->phone_number,
+                                'address' => $data->address,
+                                'area_id' => $data->area_id,
+                                'photo' => $data->photo
+                            ]);
+            return $user ;
+        } else {
+            return false;
+        }
     }
 }
