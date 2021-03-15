@@ -6,9 +6,12 @@ use App\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use DB;
+use Illuminate\Http\Request;
+use Log;
+use Sentinel;
 
-class RegisterController extends Controller
-{
+class RegisterController extends Controller {
     /*
     |--------------------------------------------------------------------------
     | Register Controller
@@ -27,15 +30,14 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->middleware('guest');
     }
 
@@ -45,8 +47,7 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validator(array $data)
-    {
+    protected function validator(array $data) {
         return Validator::make($data, [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -57,15 +58,71 @@ class RegisterController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
-     * @return \App\User
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
-    protected function create(array $data)
-    {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
-        ]);
+    protected function apiCreate(Request $request) {
+        try {
+            DB::beginTransaction();
+            $modelUser = new User();
+            
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|unique:users,email',
+                'password' => 'required|max:255|confirmed',
+                'first_name' => 'required|max:255',
+                'last_name' => 'required|max:255',
+                'birth_date' => 'required|date_format:Y-m-d',
+                'phone_number' => 'required|numeric',
+                'address' => 'required',
+                'area_id' => 'required|numeric',
+                'photo' => 'nullable'
+            ]);
+
+            $errors = $validator->errors();
+
+            if ($validator->fails()) {
+                $meta = [
+                    'code' => 400,
+                    'error' => true,
+                    'message' => 'failed',
+                ];
+
+                $data = $errors;
+            } else {
+                $result =  $modelUser->store($request);
+                DB::commit();
+                $data = [];
+
+                $meta = [
+                    'code' => 200,
+                    'error' => false,
+                    'message' => 'success'
+                ];
+            }
+
+            return response()->json([
+                'meta' => $meta,
+                'data' => $data
+            ], $meta['code']);
+        } catch (Exception $e) {
+            DB::rollback();
+            Log::error($e);
+            $data = [];
+
+            $meta = [
+                'code' => 500,
+                'error' => true,
+                'message' => 'Sorry to interrupt your work, our server seems to have problem, we will be right back soon (^_^)'
+            ];
+
+            return response()->json([
+                'meta' => $meta,
+                'data' => $data
+            ], $meta['code']);
+        }
+    }
+
+    public function signUpPage() {
+        return view('auth.signup');
     }
 }
