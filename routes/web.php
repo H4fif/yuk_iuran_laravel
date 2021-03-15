@@ -21,14 +21,10 @@ Route::get('/index', function () {
 
 Route::prefix('user')->group(function () {
     Route::get('/', ['as' => 'user.index', 'uses' => 'UserController@index']);
-    Route::get('/sign-up', ['as' => 'user.signup', 'uses' => 'UserController@signUpPage']);
 });
 
-
-// API
-Route::prefix('api')->group(function () {
-    Route::prefix('user')->group(function () {
-        Route::get('/get', ['as' => 'api.user.get', 'uses' => 'UserController@getAll']);
-        Route::post('/create', ['as' => 'api.user.store', 'uses' => 'UserController@store']);
-    });
+Route::prefix('auth')->group(function () {
+    Route::get('/', ['as' => 'auth.signin', 'uses' => 'Auth\LoginController@signInPage']);
+    Route::get('/sign-in  ', ['as' => 'auth.signin', 'uses' => 'Auth\LoginController@signInPage']);
+    Route::get('/sign-up', ['as' => 'user.signup', 'uses' => 'Auth\RegisterController@signUpPage']);
 });
